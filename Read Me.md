@@ -9,4 +9,25 @@ November 2017. The dataset has 303 observations and 56 variables, This dataset i
 
 ## Variable Selection
 Generally, more complex model = more variance. According to correlation matrix, a lot of 55 predictors will provide invaluable or redundant information.
-![Correlation Matrix](https://raw.githubusercontent.com/Israfiliya/CAD/master/Outputs/CorP-.png)
+<p align="center">
+<img src="https://raw.githubusercontent.com/Israfiliya/CAD/master/Outputs/CorP-.png">
+<I>Correlation matrix for Z-Ali dataset(Top 20 with "Cath")</I>
+</p>
+In order to findout valuable predictors, 200 Random Forests are performed and the top 8 predictors for each random forest are recorded.
+<table>
+| Variable          | Frequency |
+|-------------------|-----------|
+| Typical.Ches.Pain | 200       |
+| Age               | 200       |
+| Atypical          | 200       |
+| EF.TTE            | 200       |
+| Region.RWMA       | 179       |
+| TG                | 106       |
+| FBS               | 104       |
+| HTN               | 100       |
+| BMI               | 88        |
+| Nonanginal        | 69        |
+| ESR               | 56        |
+| Tinversation      | 50        |
+| BP                | 48        |
+</table>
