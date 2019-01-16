@@ -30,6 +30,7 @@ In order to findout valuable predictors, 200 Random Forests are performed and th
 | ESR               | 56        |
 | Tinversation      | 50        |
 | BP                | 48        |
+
 At the end, we are able to show that the top 8 predictors in the frequency table are valuable in CAD detection. And those 8 variable will be used to  build reduced models and obtaining 10-fold Cross Validation Error:
 
 ## Performance with reduced model and full model
