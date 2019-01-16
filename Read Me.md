@@ -9,3 +9,5 @@ November 2017. The dataset has 303 observations and 56 variables, This dataset i
 
 ## Variable Selection
 Generally, more complex model = more variance. According to correlation matrix, a lot of 55 predictors will provide invaluable or redundant information.
+![alt text][CorM]
+[CorM]:https://raw.githubusercontent.com/Israfiliya/CAD/master/Outputs/CorP-.png "Correlation Matrix"
