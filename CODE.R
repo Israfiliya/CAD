@@ -13,7 +13,7 @@ M=cor(Z_Ali)
 RK=cor(Z_Ali[,-56],Z_Ali$Cath)
 min10 <- which(RK<=sort(RK)[10], arr.ind = TRUE)
 max10 <- which(-RK<=sort(-RK)[10], arr.ind = TRUE)
-
+#plot Correlation Matrix
 Z=cor(Z_Ali[,c(max10[,1],min10[,1],56)])
 p.mat <- cor.mtest(Z_Ali[,c(max10[,1],min10[,1],56)])$p
 col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
@@ -33,6 +33,11 @@ corrplot(Z, type = "upper",p.mat = p.mat, sig.level = 0.01)
 Z_Ali$Exertional.CP=NULL
 Z_Ali.Refine=Z_Ali
 
+
+
+
+
+
 #Get training and test datasets
 set.seed(808) #Set seeds
 train=sample(303,212) #Generate sample index
@@ -42,6 +47,11 @@ dim(Train.data) #Find the dimension of the training data
 #Create test dataset named "Test.data"
 Test.data=Z_Ali.Refine[-train,]
 dim(Test.data) #Find the dimension of the test data
+
+
+
+
+
 
 
 #Fitting Logistic Regression
@@ -67,10 +77,7 @@ glm.pred 0 1
 [1] 0.1758242
 
 
-#K-fold for Logistic Regression
-
-
-#K-fold with 10 of logistic regression will have 0.1323733 error rate 
+#K-fold for Logistic Regression 
 #Create a function:
 cv.log=function(data, model=Cath˜., yname="Cath", K=10, seed=123){
 n=nrow(data)
@@ -112,6 +119,12 @@ $logistic_error_rate
 [1] 0.1878341
 $seed
 [1] 808
+
+
+
+
+
+
 
 #Fitting LDA
 #Load package MASS
@@ -168,6 +181,11 @@ $seed
 [1] 808 
 
 
+
+
+
+
+
 #Fitting QDA
 qda.fit=qda(Cath~.-CHF,data=Train.data)
 qda.fit
@@ -177,11 +195,22 @@ table(qda.class,Test.data$Cath)
 mean(qda.class!=Test.data$Cath)
 #Error rate=0.1648352 a higher than previous methods
 
+
+
+
+
+
 #K-fold for Qda 
 #Sadly, we can't perform a QDA with the full 55 predictors. QDA
 #requires a separate covariance matrix for each class, so with 55 predictors and 2 classes there
 #would be 255(55+1)=2 = 3080 parameters, but we only have a total of 303 observations.
 #by the fundamental theory of linear algebra, we can solve 3080 parameters with 303 observations.
+
+
+
+
+
+
 
 #A quick try using KNN
 #Using KNN
@@ -197,18 +226,21 @@ knn.pred=knn(Train.X,Test.X,Train.Result,k=1)
 table(knn.pred,Test.data$Cath)
 mean(knn.pred!=Test.data$Cath)
 #error rate= 0.3736264
-
 #K=2
 knn.pred=knn(Train.X,Test.X,Train.Result,k=2)
 table(knn.pred,Test.data$Cath)
 mean(knn.pred!=Test.data$Cath)
 #error rate= 0.428574
-
 #K=3
 knn.pred=knn(Train.X,Test.X,Train.Result,k=3)
 table(knn.pred,Test.data$Cath)
 mean(knn.pred!=Test.data$Cath)
 #error rate= 0.373624 same as k=1]
+
+
+
+
+
 
 
 
@@ -240,6 +272,8 @@ Normal 4 22
 #Misclassification rate
 mean(tree.predict!=TTest.data$Cath)
 [1] 0.1758242
+
+
 #K fold with Decision Tree
 #load packages
 library(plyr)
@@ -265,6 +299,13 @@ errs[i]=1-sum(diag(conf.mat))/sum(conf.mat) #Assign errors
 print(sprintf("Average Error Using K-fold Cross-Validation: %.3f
 percent", 100*mean(errs)))
 [1] "Average Error Using K-fold Cross-Validation: 22.462 percent"’
+
+
+
+
+
+
+
 
 #SVM Approch
 #Load package
@@ -297,6 +338,9 @@ Normal 6 26
 mean(svmpredictL!=TTest.data$Cath)
 [1] 0.1538462
 
+
+
+
 #10-fold cross validation for radial kernal
 Rsvmfit=tune(svm, Cath˜., data=Z_Ali.T, kernel="radial", gamma
 =0.01724138, cost=1, tunecontrol=tune.control(cross=10))
@@ -307,6 +351,10 @@ Lsvmfit=tune(svm, Cath˜., data=Z_Ali.T, kernel="linear", gamma
 =0.01724138, cost=1, tunecontrol=tune.control(cross=10))
 summary(Lsvmfit)
 ’Error Estimation of SVM Using 10-fold Cross Validation: 0.1647312’
+
+
+
+
 
 
 #Random Forest
@@ -330,9 +378,10 @@ Normal 26 61 0.29885057
 
 
 
+
+
 #Finding out valuable predictors
 summary(rf.fit$importance)
-
 importance(rf.fit)
 varImpPlot(rf.fit,main="Important variables for Z-Ali")
 #Create temporary data frame to hold results
@@ -362,6 +411,9 @@ Pick=rbind(rankingA,rankingG)
 table(Pick)
 Pick
 
+
+
+
 #Performances on Reduced Model
 #Applied created function for Logistic Regression
 cv.log(Z_Ali.Refine, model=as.factor(Cath)˜Typical.Chest.Pain+Age+
@@ -376,6 +428,9 @@ $logistic_error_rate
 [1] 0.1312289
 $seed
 [1] 808
+
+
+
 
 #Applied created function for LDA
 cv.lda(Z_Ali.Refine, model=as.factor(Cath)˜Typical.Chest.Pain+Age+
@@ -392,6 +447,9 @@ $lda_error_rate
 $seed
 [1] 808
 
+
+
+
 #Applied created function for QDA
 cv.qda(Z_Ali.Refine, model=Cath˜Typical.Chest.Pain+Age+Atypical+
 EF.TTE+Region.RWMA+TG+FBS+HTN, yname="Cath", K=10, seed=808)
@@ -405,6 +463,9 @@ $qda_error_rate
 $seed
 [1] 808’
 
+
+
+
 #Performance on reduced model for SVM
 #Set random seed
 set.seed(808)
@@ -413,7 +474,6 @@ tune.outL=tune(svm, Cath~Typical.Chest.Pain+Age+Atypical+EF.TTE+Region.RWMA+TG+F
 		ranges=list(cost=seq(0.01,0.09,0.001), gamma=seq(0.001,0.01,0.001)),
             tunecontrol=tune.control(cross=10))
 summary(tune.outL)
-
 #Set random seed
 set.seed(808)
 #tune svm
@@ -421,7 +481,6 @@ tune.outR=tune(svm, Cath~Typical.Chest.Pain+Age+Atypical+EF.TTE+Region.RWMA+TG+F
 		ranges=list(cost=seq(0.15,0.16,0.001), gamma=seq(0.04,0.05,0.001)),
             tunecontrol=tune.control(cross=10))
 summary(tune.outR)
-
 #Apply SVM with radial kernel
 Rsvmfit=tune(svm, Cath˜Typical.Chest.Pain+Age+Atypical+EF.TTE+Region.
 RWMA+
