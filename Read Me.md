@@ -14,7 +14,7 @@ Generally, more complex model = more variance. According to correlation matrix, 
 <I>Correlation matrix for Z-Ali dataset(Top 20 with "Cath")</I>
 </p>
 In order to findout valuable predictors, 200 Random Forests are performed and the top 8 predictors for each random forest are recorded.
-<table>
+
 | Variable          | Frequency |
 |-------------------|-----------|
 | Typical.Ches.Pain | 200       |
@@ -30,4 +30,6 @@ In order to findout valuable predictors, 200 Random Forests are performed and th
 | ESR               | 56        |
 | Tinversation      | 50        |
 | BP                | 48        |
-</table>
+At the end, we are able to show that the top 8 predictors in the frequency table are valuable in CAD detection. And those 8 variable will be used to  build reduced models and obtaining 10-fold Cross Validation Error:
+
+## Performance with reduced model and full model
