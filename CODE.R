@@ -449,26 +449,3 @@ Error estimation of svm using 10-fold cross validation: 0.1323656
 
 
 
-
-tune.outR=tune(svm, Cath~., data=TTrain.data, kernal="radial", 
-		ranges=list(cost=seq(1,10,1)),
-            )
-summary(tune.outR)
-svmpredict=predict(tune.outR$best.model,TTest.data)
-table(svmpredict,TTest.data$Cath)
-mean(svmpredict!=TTest.data$Cath)
-
-
-
-set.seed(808)
-Rsvmfit=tune(svm, Cath~Typical.Chest.Pain+Age+Atypical+EF.TTE+Region.RWMA+TG+FBS+HTN, data=Z_Ali.T, kernel="radial", gamma=0.048, cost=0.159, tunecontrol=tune.control(cross=10))
-summary(Rsvmfit)
-
-set.seed(808)
-Lsvmfit=tune(svm, Cath~Typical.Chest.Pain+Age+Atypical+EF.TTE+Region.RWMA+TG+FBS+HTN, data=Z_Ali.T, kernel="linear", gamma=0.001, cost=0.089, tunecontrol=tune.control(cross=10))
-summary(Lsvmfit)
-
-
-library(caret) #loading package for K-fold.
-
-
