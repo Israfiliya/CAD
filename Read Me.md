@@ -43,6 +43,7 @@ At the end, we are able to show that the top 8 predictors in the frequency table
 |SVM (Radial Kernel) |**13.23%** |13.24%
 |SVM (Linear Kernel) |16.47% |13.24%
 |**Average** |**16.57%** |**13.67%**
+
 10-fold cross validation are performed for both full and reduced model. From the results we can conclude that: By uisng the reduced model, the misclassification decrased about 3%.
 
 By comparing the performance of 5 different classification methods, we also can make the following assumptions:
