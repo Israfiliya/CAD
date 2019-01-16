@@ -32,173 +32,140 @@ corrplot(Z, type = "upper",p.mat = p.mat, sig.level = 0.01)
 #Clean out zero correlation
 Z_Ali$Exertional.CP=NULL
 Z_Ali.Refine=Z_Ali
-corrplot(Z,type = "upper",method = "square")
-corrplot.mixed(Z)
-Q=cor(Z_Ali.Refine)
-Z=cov(Z_Ali.Refine)
 
-#Replot correlation with significance test
-res1 <- cor.mtest(M, conf.level = .95)
-corrplot(M,type = "upper",method = "square", p.mat = res1$p, sig.level = .01 ,insig = "blank")
-attach(Z_Ali.Refine)
-cor(Typical.Chest.Pain,Atypical)
-cor(Cath,Typical.Chest.Pain)
-#From the correlation plot Select Variable correlated with Cath
-#Age
-#DM
-#HTN
-#BP
-#Typical.Chest.Pain
-#Atypical
-#Nonanginal
-#Tinversion
-#FBS
-#K
-#EF.TTE
-#Region.RWMA
-
-
-a=c(0,0,0,0,1,0,1,0,0,0,0,1,0,1)
-b=c(0,0,0,0,0,0,1,0,0,0,0,0,0,1)
-cov(a,b)
-
-Typical.Chest.Pain+Age+Atypical+EF.TTE+Region.RWMA+TG+FBS+HTN
-
-
-
-
-
-#Refine the data set only contain the selected variables.
-Z_Ali.Refine=cbind(
-Z_Ali$Age,Z_Ali$DM,Z_Ali$HTN,Z_Ali$BP,Z_Ali$Typical.Chest.Pain,Z_Ali$Atypical,
-Z_Ali$Nonanginal,Z_Ali$Tinversion,Z_Ali$FBS,Z_Ali$K,Z_Ali$EF.TTE,Z_Ali$Region.RWMA,Z_Ali$Cath)
-colnames(Z_Ali.Refine)=c(
-"Age", "DM", "HTN", "BP", "Typical.Chest.Pain", "Atypical", 
-"Nonanginal", "Tinversion", "FBS", "K", "EF.TTE", "Region.RWMA", "Cath"
-)
-head(Z_Ali.Refine)
-Z_Ali.Refine=data.frame(Z_Ali.Refine)
-
-
-#Get Training dataset and Test dataset
-set.seed(808)
-train=sample(303,212)
+#Get training and test datasets
+set.seed(808) #Set seeds
+train=sample(303,212) #Generate sample index
+#Create training dataset named "Train.data"
 Train.data=Z_Ali.Refine[train,]
-head(Train.data)
-dim(Train.data)
+dim(Train.data) #Find the dimension of the training data
+#Create test dataset named "Test.data"
 Test.data=Z_Ali.Refine[-train,]
-dim(Test.data)
+dim(Test.data) #Find the dimension of the test data
 
 
 #Fitting Logistic Regression
-detach(Z_Ali.Refine)
 attach(Train.data)
-glm.fit=glm(Cath~.,family=binomial,data=Train.data,control=list(maxit=50))
+#Train the model
+glm.fit=glm(Cath˜., family=binomial, data=Train.data, control=list(
+maxit=50))
+"Warning messages:
+1: glm.fit: fitted probabilities numerically 0 or 1 occurred"
+#Summary statistics
 summary(glm.fit)
+#Making prediction
 glm.probs=predict(glm.fit,Test.data,type="response")
 glm.pred=rep(0,91)
-glm.pred[glm.probs>0.8]=1
+glm.pred[glm.probs>0.5]=1
+#Confusion matrix
 table(glm.pred,Test.data$Cath)
-mean(glm.pred!=Test.data$Cath)
+glm.pred 0 1
+0 26 8
+1 8 49
+#Misclassification rate
+> mean(glm.pred!=Test.data$Cath)
+[1] 0.1758242
+
 
 #K-fold for Logistic Regression
 
-cv.log=
-function (data, model=Cath~., yname="Cath", K=10, seed=123){
-  n=nrow(data)
-  set.seed(seed)
-  datay=data[,yname]#response variable
-  library(MASS)
 
-    #partition the data into K subsets
-    f=ceiling(n/K)
-    s=sample(rep(1:K, f), n)  
-    #generate indices 1:10 and sample n of them  
-    # K fold cross-validated error
-    
-    CV=NULL
-    
-    for (i in 1:K) { #i=1
-      test.index <- seq_len(n)[(s == i)] #test data
-      train.index <- seq_len(n)[(s != i)] #training data
-      
-      #model with training data
-      glm.fit=glm(model, data=data[train.index,],family=binomial)
-      #observed test set y
-      glm.y <- data[test.index, yname]
-      #predicted test set y
-      glm.predy=round(predict(glm.fit, data[test.index,],type="response"))
-      #observed - predicted on test data
-      error= mean(glm.y!=glm.predy)
-      #error rates 
-      CV=c(CV,error)
-    }
-    #Output
-    list(call = model, K = K, 
-         logistic_error_rate = mean(CV), seed = seed)  
-  }
-cv.log(Z_Ali.Refine, model=as.factor(Cath)~. , yname="Cath", K=10, seed=808)
-cv.log(Z_Ali.Refine, model=as.factor(Cath)~Typical.Chest.Pain+Age+Atypical+EF.TTE+Region.RWMA+TG+FBS+HTN , yname="Cath", K=10, seed=808)
 #K-fold with 10 of logistic regression will have 0.1323733 error rate 
-
-
-#only use Chest Pain as predictor
-glm.fit2=glm(Cath~Age+Typical.Chest.Pain,family=binomial,data=Train.data)
-glm.probs=predict(glm.fit2,Test.data,type="response")
-glm.pred=rep(0,91)
-glm.pred[glm.probs>0.5]=1
-table(glm.pred,Test.data$Cath)
-mean(glm.pred!=Test.data$Cath)
-cor(Typical.Chest.Pain,Cath)
+#Create a function:
+cv.log=function(data, model=Cath˜., yname="Cath", K=10, seed=123){
+n=nrow(data)
+set.seed(seed)
+datay=data[,yname]#Response variable
+library(MASS)#Load package
+#Partition the data into K subsets
+f=ceiling(n/K)
+s=sample(rep(1:K, f), n)
+#Generate indices 1:10 and sample n of them
+#K fold cross-validated error
+CV=NULL
+for (i in 1:K) {#i=1
+test.index=seq_len(n)[(s==i)] #Test data
+train.index=seq_len(n)[(s!=i)] #Training data
+#Model with training data
+glm.fit=glm(model, data=data[train.index,],family=binomial)
+#observed test set y
+glm.y=data[test.index, yname]
+#Predicted test set y
+glm.predy=round(predict(glm.fit, data[test.index,],type="response"))
+#Observed-predicted on test data
+error=mean(glm.y!=glm.predy)
+#Error rates
+CV=c(CV,error)
+}
+#Output
+list(call=model, K=K,
+logistic_error_rate=mean(CV), seed=seed)
+}
+#Apply created function
+cv.log(Z_Ali.Refine, model=as.factor(Cath)˜8., yname="Cath", K=10, seed
+=808)
+$Call
+as.factor(Cath)˜.
+$K
+[1] 10
+$logistic_error_rate
+[1] 0.1878341
+$seed
+[1] 808
 
 #Fitting LDA
+#Load package MASS
 library(MASS)
-lda.fit=lda(Cath~.,data=Train.data)
-summary(lda.fit)
+#Train the model
+lda.fit=lda(Cath˜.,data=Train.data)
+#Making prediction
 lda.pred=predict(lda.fit,Test.data)
 lda.class=lda.pred$class
+#Confusion matrix
 table(lda.class,Test.data$Cath)
+#Misclassification rate
 mean(lda.class!=Test.data$Cath)
-#Error rate=0.1428571 Same as Logistic Regression
+[1] 0.1098901
 
 #K-fold for lda
-cv.lda=
-function (data, model=Cath~., yname="Cath", K=10, seed=123){
-  n=nrow(data)
-  set.seed(seed)
-  datay=data[,yname]#response variable
-  library(MASS)
-
-    #partition the data into K subsets
-    f=ceiling(n/K)
-    s=sample(rep(1:K, f), n)  
-    #generate indices 1:10 and sample n of them  
-    # K fold cross-validated error
-    
-    CV=NULL
-    
-    for (i in 1:K) { #i=1
-      test.index <- seq_len(n)[(s == i)] #test data
-      train.index <- seq_len(n)[(s != i)] #training data
-      
-      #model with training data
-      lda.fit=lda(model, data=data[train.index,])
-      #observed test set y
-      lda.y <- data[test.index, yname]
-      #predicted test set y
-      lda.predy=predict(lda.fit, data[test.index,])$class
-      
-      #observed - predicted on test data
-      error= mean(lda.y!=lda.predy)
-      #error rates 
-      CV=c(CV,error)
-    }
-    #Output
-    list(call = model, K = K, 
-         lda_error_rate = mean(CV), seed = seed)  
-  }
-cv.lda(Z_Ali.Refine, model=Cath~Typical.Chest.Pain+Age+Atypical+EF.TTE+Region.RWMA+TG+FBS+HTN , yname="Cath", K=10, seed=808)
-#K-fold with 10 of LDA will have 0.1357 error rate 
+#Create function
+cv.lda=function(data, model=Cath˜., yname="Cath", K=10, seed=123){
+n=nrow(data)
+set.seed(seed)
+datay=data[,yname]#Response variable
+library(MASS)
+#Partition the data into K subsets
+f=ceiling(n/K)
+s=sample(rep(1:K, f), n)
+#Generate indices 1:10 and sample n of them
+#K fold cross-validated error
+CV=NULL
+for (i in 1:K) {#i=1
+test.index=seq_len(n)[(s==i)] #test data
+train.index=seq_len(n)[(s!=i)] #training data
+#Model with training data
+lda.fit=lda(model, data=data[train.index,])
+#Observed test set
+lda.y=data[test.index, yname]
+#Predicted the test set
+lda.predy=predict(lda.fit, data[test.index,])$class
+#Observed-predicted on test data
+error=mean(lda.y!=lda.predy)
+#Error rates
+CV=c(CV,error)
+}
+#Output
+list(call=model, K = K, lda_error_rate=mean(CV), seed=seed)
+}
+cv.lda(Z_Ali.Refine, model=Cath˜.-CHF, yname="Cath", K=10, seed=808)
+$call
+Cath˜.-CHF
+$K
+[1] 10
+$lda_error_rate
+[1] 0.1481106
+$seed
+[1] 808 
 
 
 #Fitting QDA
@@ -211,47 +178,12 @@ mean(qda.class!=Test.data$Cath)
 #Error rate=0.1648352 a higher than previous methods
 
 #K-fold for Qda 
-cv.qda=
-function (data, model=Cath~., yname="Cath", K=10, seed=123){
-  n=nrow(data)
-  set.seed(seed)
-  datay=data[,yname]#response variable
-  library(MASS)
+#Sadly, we can't perform a QDA with the full 55 predictors. QDA
+#requires a separate covariance matrix for each class, so with 55 predictors and 2 classes there
+#would be 255(55+1)=2 = 3080 parameters, but we only have a total of 303 observations.
+#by the fundamental theory of linear algebra, we can solve 3080 parameters with 303 observations.
 
-    #partition the data into K subsets
-    f=ceiling(n/K)
-    s=sample(rep(1:K, f), n)  
-    #generate indices 1:10 and sample n of them  
-    # K fold cross-validated error
-    
-    CV=NULL
-    
-    for (i in 1:K) { #i=1
-      test.index <- seq_len(n)[(s == i)] #test data
-      train.index <- seq_len(n)[(s != i)] #training data
-      
-      #model with training data
-      qda.fit=qda(model, data=data[train.index,])
-      #observed test set y
-      qda.y <- data[test.index, yname]
-      #predicted test set y
-      qda.predy=predict(qda.fit, data[test.index,])$class
-      
-      #observed - predicted on test data
-      error= mean(qda.y!=qda.predy)
-      #error rates 
-      CV=c(CV,error)
-    }
-    #Output
-    list(call = model, K = K, 
-         qda_error_rate = mean(CV), seed = seed)  
-  }
-attach(Z_Ali)
-set.seed(808)
-cv.qda(Z_Ali.Refine, model=Cath~Typical.Chest.Pain+Age+Atypical+EF.TTE+Region.RWMA+TG+FBS+HTN , yname="Cath", K=10, seed=808)
-#K-fold with QDA will have 0.165169 error rate
-
-
+#A quick try using KNN
 #Using KNN
 library(class)
 Train.X=cbind(Z_Ali$Age,Z_Ali$DM,Z_Ali$HTN,Z_Ali$BP,Z_Ali$Typical.Chest.Pain,Z_Ali$Atypical,
@@ -281,117 +213,235 @@ mean(knn.pred!=Test.data$Cath)
 
 
 #Decision Tree Methods.
+#Load original data
 Z_Ali.T=read.csv(file=file.choose(),header=TRUE)
+#Clean the all zero column
 Z_Ali.T$Exertional.CP=NULL
+#Create training and test datasets using the same seed
 set.seed(808)
 train=sample(303,212)
 TTrain.data=Z_Ali.T[train,]
 TTest.data=Z_Ali.T[-train,]
-ncol(TTest.data)
-head(TTest.data)
+#Load package
 library(tree)
-Tree.fit=tree(Cath~., TTrain.data)
+#Train the model
+Tree.fit=tree(Cath˜., TTrain.data)
 summary(Tree.fit)
-pdf('Tree1.pdf')
+#Plot the tree
 plot(Tree.fit)
 text(Tree.fit, pretty=0)
-dev.off()
+#Making prediction
 tree.predict=predict(Tree.fit,TTest.data[,-55],type="class")
+#Confusion matrix
 table(tree.predict,TTest.data$Cath)
+tree.predict Cad Normal
+Cad 53 12
+Normal 4 22
+#Misclassification rate
 mean(tree.predict!=TTest.data$Cath)
-
+[1] 0.1758242
 #K fold with Decision Tree
+#load packages
 library(plyr)
 library(rpart)
-head(Z_Ali.T)
+#Set seed
 set.seed(808)
-form="Cath~Typical.Chest.Pain+Age+Atypical+EF.TTE+Region.RWMA+TG+FBS+HTN"
+#Set model form
+form="Cath˜."
+#Create folds and error object
 folds=split(Z_Ali.T, cut(sample(1:nrow(Z_Ali.T)),10))
 errs=rep(NA, length(folds))
-
-for (i in 1:length(folds)) 
+#Loop
+for (i in 1:length(folds))
 {
- test=ldply(folds[i], data.frame)
- train=ldply(folds[-i], data.frame)
- tmp.model=tree(form , train)
- tmp.predict=predict(tmp.model, test, type = "class")
- conf.mat=table(test$Cath, tmp.predict)
- errs[i]=1-sum(diag(conf.mat))/sum(conf.mat)
+test=ldply(folds[i], data.frame) #Assign test dataset
+train=ldply(folds[-i], data.frame) #Assign test training dataset
+tmp.model=tree(form, train) #Buid model
+tmp.predict=predict(tmp.model, test, type="class") #Making prediction
+conf.mat=table(test$Cath, tmp.predict)
+errs[i]=1-sum(diag(conf.mat))/sum(conf.mat) #Assign errors
 }
-print(sprintf("average error using k-fold cross-validation: %.3f percent", 100*mean(errs)))
-#average error using k-fold cross-validation: 19.806 percent
+#Print out results
+print(sprintf("Average Error Using K-fold Cross-Validation: %.3f
+percent", 100*mean(errs)))
+[1] "Average Error Using K-fold Cross-Validation: 22.462 percent"’
 
+#SVM Approch
+#Load package
+library(e1071)
+#Fit with radial kernel
+svmfitR=svm(Cath˜., data=TTrain.data, kernel="radial", cost=1)
+summary(svmfitR)
+#Making prediction
+svmpredictR=predict(svmfitR,TTest.data)
+#Confusion matrix
+table(svmpredictR,TTest.data$Cath)
+svmpredictR Cad Normal
+Cad 54 11
+Normal 3 23
+#Test error
+mean(svmpredictR!=TTest.data$Cath)
+[1] 0.1538462
 
-#Bagging for Decision Tree
-library(ipred)
-ZBag=bagging(Cath~.,data=Z_Ali.T, coob=TRUE)
-print(ZBag)
-#Out-of-bag estimate of misclassification error:  0.1419
+#Fit with Linear Kernel
+svmfitL=svm(Cath˜., data=TTrain.data, kernal="linear", cost=1)
+summary(svmfitL)
+#Making prediction
+svmpredictL=predict(svmfitL,TTest.data)
+#Confusion matrix
+table(svmpredictL,TTest.data$Cath)
+svmpredictL Cad Normal
+Cad 51 8
+Normal 6 26
+#Test error
+mean(svmpredictL!=TTest.data$Cath)
+[1] 0.1538462
+
+#10-fold cross validation for radial kernal
+Rsvmfit=tune(svm, Cath˜., data=Z_Ali.T, kernel="radial", gamma
+=0.01724138, cost=1, tunecontrol=tune.control(cross=10))
+summary(Rsvmfit)
+Error Estimation of SVM Using 10-fold Cross Validation: 0.13225
+#10-fold cross validation for linear kernal
+Lsvmfit=tune(svm, Cath˜., data=Z_Ali.T, kernel="linear", gamma
+=0.01724138, cost=1, tunecontrol=tune.control(cross=10))
+summary(Lsvmfit)
+’Error Estimation of SVM Using 10-fold Cross Validation: 0.1647312’
+
 
 #Random Forest
+#Load package
 library(randomForest)
-
-rf.fit=randomForest(Cath~.,data=Z_Ali.T,mty=7,importance=TRUE)
+#Set random seed
+set.seed(808)
+#Train the model
+rf.fit=randomForest(Cath˜., data=Z_Ali.T,mty=7, importance=TRUE)
 rf.fit
+Call:
+randomForest(formula=Cath˜., data=Z_Ali.T, mty=7, importance=TRUE)
+Type of random forest: classification
+Number of trees: 500
+No. of variables tried at each split: 7
+OOB estimate of error rate: 12.21%
+Confusion matrix:
+Cad Normal class.error
+Cad 205 11 0.05092593
+Normal 26 61 0.29885057
 
 
 
-
+#Finding out valuable predictors
 summary(rf.fit$importance)
 
 importance(rf.fit)
 varImpPlot(rf.fit,main="Important variables for Z-Ali")
-rf.fit2=randomForest(Cath~Atypical+Age+Nonanginal+Region.RWMA+EF.TTE+HTN+VHD+Tinversion,
-                     data=Z_Ali.T,mty=8)
-rf.fit2
-importance(rf.fit2)
-rf.fit3=randomForest(Cath~Atypical+Age+EF.TTE+TG+FBS+Region.RWMA+BMI+ESR+BP,
-                     data=Z_Ali.T,mty=8)
-rf.fit3
-importance(rf.fit3)
-
+#Create temporary data frame to hold results
 rankingA=data.frame()
 rankingG=data.frame()
+#Looping
 for (i in 1:100)
 {
-set.seed(100+i*3)
-rf.fit=randomForest(Cath~.,data=Z_Ali.T,mty=7,importance=TRUE)
+set.seed(100+i*3) #Change seed
+#Run random forest model
+rf.fit=randomForest(Cath˜., data=Z_Ali.T, mty=7, importance=TRUE)
+#Get variable importance list and sort by ranking
 newdata=data.frame(rf.fit$importance)
 newDA=newdata[order(-newdata$MeanDecreaseAccuracy),]
 newDG=newdata[order(-newdata$MeanDecreaseGini),]
+#Generate top 8 variables and assign to temporary data frame
 MDA=data.frame(row.names(newDA)[1:8])
 MDG=data.frame(row.names(newDG)[1:8])
 rankingA=rbind(rankingA,MDA)
 rankingG=rbind(rankingG,MDG)
 }
-fix(ranking)
+#Rename the column name and merge temporary data frame
 colnames(rankingA)="Pick"
 colnames(rankingG)="Pick"
 Pick=rbind(rankingA,rankingG)
+#Frequency table
 table(Pick)
+Pick
 
+#Performances on Reduced Model
+#Applied created function for Logistic Regression
+cv.log(Z_Ali.Refine, model=as.factor(Cath)˜Typical.Chest.Pain+Age+
+Atypical+
+EF.TTE+Region.RWMA+TG+FBS+HTN, yname="Cath", K=10, seed=808)
+$call
+as.factor(Cath)˜Typical.Chest.Pain+Age+Atypical+EF.TTE+Region.RWMA+TG+
+FBS+HTN
+$K
+[1] 10
+$logistic_error_rate
+[1] 0.1312289
+$seed
+[1] 808
 
+#Applied created function for LDA
+cv.lda(Z_Ali.Refine, model=as.factor(Cath)˜Typical.Chest.Pain+Age+
+Atypical+
+EF.TTE+Region.RWMA+TG+FBS+HTN, yname="Cath", K=10, seed=808)
+#Results
+$call
+as.factor(Cath)˜Typical.Chest.Pain+Age+Atypical+EF.TTE+Region.RWMA+TG+
+FBS+HTN
+$K
+[1] 10
+$lda_error_rate
+[1] 0.1445853
+$seed
+[1] 808
 
+#Applied created function for QDA
+cv.qda(Z_Ali.Refine, model=Cath˜Typical.Chest.Pain+Age+Atypical+
+EF.TTE+Region.RWMA+TG+FBS+HTN, yname="Cath", K=10, seed=808)
+#Results
+$call
+Cath˜Typical.Chest.Pain+Age+Atypical+EF.TTE+Region.RWMA+TG+FBS+HTN
+$K
+[1] 10
+$qda_error_rate
+[1] 0.1574885
+$seed
+[1] 808’
 
-#SVM approach
-library(e1071)
+#Performance on reduced model for SVM
+#Set random seed
 set.seed(808)
-svmfitR=svm(Cath~Typical.Chest.Pain+Age+Atypical+EF.TTE+Region.RWMA+TG+FBS+HTN, data=TTrain.data, kernel="radial", cost=1)
-summary(svmfitR)
-svmpredictR=predict(svmfitR,TTest.data)
-table(svmpredictR,TTest.data$Cath)
-mean(svmpredictR!=TTest.data$Cath)
+#tune svm
+tune.outL=tune(svm, Cath~Typical.Chest.Pain+Age+Atypical+EF.TTE+Region.RWMA+TG+FBS+HTN, data=Z_Ali.T, kernel="linear", 
+		ranges=list(cost=seq(0.01,0.09,0.001), gamma=seq(0.001,0.01,0.001)),
+            tunecontrol=tune.control(cross=10))
+summary(tune.outL)
 
-#fit with linear kernal
-svmfitL=svm(Cath~Typical.Chest.Pain+Age+Atypical+EF.TTE+Region.RWMA+TG+FBS+HTN, data=TTrain.data, kernel="linear", cost=1)
-summary(svmfitL)
+#Set random seed
+set.seed(808)
+#tune svm
+tune.outR=tune(svm, Cath~Typical.Chest.Pain+Age+Atypical+EF.TTE+Region.RWMA+TG+FBS+HTN, data=Z_Ali.T, kernel="radial", 
+		ranges=list(cost=seq(0.15,0.16,0.001), gamma=seq(0.04,0.05,0.001)),
+            tunecontrol=tune.control(cross=10))
+summary(tune.outR)
 
-#Making prediction
-svmpredictL=predict(svmfitL,TTest.data)
-#confusion matrix
-table(svmpredictL,TTest.data$Cath)
-#test error
-mean(svmpredictL!=TTest.data$Cath)
+#Apply SVM with radial kernel
+Rsvmfit=tune(svm, Cath˜Typical.Chest.Pain+Age+Atypical+EF.TTE+Region.
+RWMA+
+TG+FBS+HTN, data=Z_Ali.T, kernel="radial", gamma=0.048, cost=0.159,
+CHAPTER 4. VARIABLE SELECTION AND MODEL IMPROVEMENT 39
+tunecontrol=tune.control(cross=10))
+#Error rate
+summary(Rsvmfit)
+Error estimation of svm using 10-fold cross validation: 0.1323656
+#Set random seed
+set.seed(808)
+#Apply SVM with linear kernel
+Lsvmfit=tune(svm, Cath˜Typical.Chest.Pain+Age+Atypical+EF.TTE+Region.
+RWMA+
+TG+FBS+HTN, data=Z_Ali.T, kernel="linear", gamma=0.001, cost=0.089,
+tunecontrol=tune.control(cross=10))
+#Error rate
+summary(Lsvmfit)
+Error estimation of svm using 10-fold cross validation: 0.1323656
+
 
 
 
@@ -408,17 +458,7 @@ svmpredict=predict(tune.outR$best.model,TTest.data)
 table(svmpredict,TTest.data$Cath)
 mean(svmpredict!=TTest.data$Cath)
 
-set.seed(808)
-tune.outL=tune(svm, Cath~Typical.Chest.Pain+Age+Atypical+EF.TTE+Region.RWMA+TG+FBS+HTN, data=Z_Ali.T, kernel="linear", 
-		ranges=list(cost=seq(0.01,0.09,0.001), gamma=seq(0.001,0.01,0.001)),
-            tunecontrol=tune.control(cross=10))
-summary(tune.outL)
 
-
-tune.outR=tune(svm, Cath~Typical.Chest.Pain+Age+Atypical+EF.TTE+Region.RWMA+TG+FBS+HTN, data=Z_Ali.T, kernel="radial", 
-		ranges=list(cost=seq(0.15,0.16,0.001), gamma=seq(0.04,0.05,0.001)),
-            tunecontrol=tune.control(cross=10))
-summary(tune.outR)
 
 set.seed(808)
 Rsvmfit=tune(svm, Cath~Typical.Chest.Pain+Age+Atypical+EF.TTE+Region.RWMA+TG+FBS+HTN, data=Z_Ali.T, kernel="radial", gamma=0.048, cost=0.159, tunecontrol=tune.control(cross=10))
