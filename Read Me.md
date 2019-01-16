@@ -53,7 +53,7 @@ By comparing the performance of 5 different classification methods, we also can 
 
 * QDA is similar to LDA. But the number of parameters will become huge as having more predictors.
 
-* Decision Tree with Random Forest is the best classier for this data set. Decision tree models nonlinear relationships and handles categorical predictors effectively.
+* Decision Tree with Random Forest is the best classifier for this data set. Decision tree models nonlinear relationships and handles categorical predictors effectively.
 * SVM shows a strong ability to deal with redundant information. In general, SVMs are more focused
 on model regulation rather than feature selection. This is the reason why the error rate with SVM
 almost no change after variable selection.
